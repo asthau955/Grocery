@@ -30,18 +30,5 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// Protected route (only accessible with JWT)
-router.post('/profile', async (req: any, res: Response, next: any): Promise<void> => {
-  try {
-    const result = await authenticate(req, res, next)
-    res.status(200).json({
-      message: 'Profile data',
-      user: req.user,  // User info will be available from JWT token
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(error?.statusCode ?? 500).send({message: error?.message ?? 'Server Error'});
-  }
-});
 
 export default router;
