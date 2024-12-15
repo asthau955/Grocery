@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/itemlist', async (req: any, res: Response): Promise<void> => {
     try {
         const authRes: any = authenticate(req)
-        if (!authRes)  res.status(401).send({message: 'unauthorized'});
+        if (!authRes && !authRes?.user?.isAdmin)  res.status(401).send({message: 'unauthorized'});
         req.user = authRes.user
         const result = await getAllItems()
         res.status(200).json(result);
@@ -28,7 +28,7 @@ router.get('/itemlist', async (req: any, res: Response): Promise<void> => {
 router.post('/item', async (req: any, res: Response): Promise<void> => {
     try {
         const authRes: any = authenticate(req)
-        if (!authRes)  res.status(401).send({message: 'unauthorized'});
+        if (!authRes && !authRes?.user?.isAdmin)  res.status(401).send({message: 'unauthorized'});
         req.user = authRes.user
         const result = await addItem(req.body, req)
         res.status(200).json(result);
@@ -45,7 +45,7 @@ router.post('/item', async (req: any, res: Response): Promise<void> => {
 router.put('/item', async (req: any, res: Response): Promise<void> => {
     try {
         const authRes: any = authenticate(req)
-        if (!authRes)  res.status(401).send({message: 'unauthorized'});
+        if (!authRes && !authRes?.user?.isAdmin)  res.status(401).send({message: 'unauthorized'});
         req.user = authRes.user
         const result = await updateItem(req.body, req)
         res.status(200).json(result);
@@ -62,7 +62,7 @@ router.put('/item', async (req: any, res: Response): Promise<void> => {
 router.delete('/item', async (req: any, res: Response): Promise<void> => {
     try {
         const authRes: any = authenticate(req)
-        if (!authRes)  res.status(401).send({message: 'unauthorized'});
+        if (!authRes && !authRes?.user?.isAdmin)  res.status(401).send({message: 'unauthorized'});
         req.user = authRes.user
         const result = await deleteItems(req.body, req)
         res.status(200).json(result);

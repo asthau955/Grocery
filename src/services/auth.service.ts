@@ -11,8 +11,12 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Generate JWT Token
-const generateToken = (userId: number) => {
-    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' });
+const generateToken = (id: number, isAdmin: boolean) => {
+    const payload = {
+        id,
+        isAdmin,
+    };
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 };
 
 // User Registration (Sign Up)
@@ -25,7 +29,7 @@ export const registerUser = async (body: any) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await create(userSchema, { name, email, phoneno, password: hashedPassword });
-        return generateToken(user.dataValues.id);
+        return generateToken(user.dataValues.id, user.dataValues.isAdmin);
     } catch (error: any) {
         throw { message: error?.message, statusCode: error?.statusCode }
     }
@@ -45,7 +49,7 @@ export const loginUser = async (body: any) => {
             throw { message: 'Invalid credentials', statusCode: 400 };
         }
 
-       return generateToken(user[0].dataValues.id); 
+       return generateToken(user[0].dataValues.id, user[0].dataValues.isAdmin); 
     } catch (error: any) {
         throw { message: error?.message, statusCode: error?.statusCode }
     }
