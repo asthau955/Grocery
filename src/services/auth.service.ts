@@ -11,8 +11,12 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Generate JWT Token
-const generateToken = (userId: number) => {
-    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' });
+const generateToken = (id: number, isAdmin: boolean) => {
+    const payload = {
+        id,
+        isAdmin,
+    };
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
 };
 
 // User Registration (Sign Up)
@@ -25,7 +29,7 @@ export const registerUser = async (body: any) => {
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await create(userSchema, { name, email, phoneno, password: hashedPassword });
-        return generateToken(user.id);
+        return generateToken(user.dataValues.id, user.dataValues.isAdmin);
     } catch (error: any) {
         throw { message: error?.message, statusCode: error?.statusCode }
     }
@@ -45,25 +49,25 @@ export const loginUser = async (body: any) => {
             throw { message: 'Invalid credentials', statusCode: 400 };
         }
 
-       return generateToken(user.id); 
+       return generateToken(user[0].dataValues.id, user[0].dataValues.isAdmin); 
     } catch (error: any) {
         throw { message: error?.message, statusCode: error?.statusCode }
     }
 };
 
 // Middleware to protect routes
-export const authenticate = (req: any, res: Response, next: Function) => {
+export const authenticate = (req: any) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-        return res.status(401).json({ message: 'Authorization token missing' });
+        return false;
     }
 
     try {
         const decoded: any = jwt.verify(token, JWT_SECRET);
         req.user = decoded; // Add user data to request object (for protected routes)
-        next();
+        return {user: req.user, status: true}
     } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
+        return false
     }
 };

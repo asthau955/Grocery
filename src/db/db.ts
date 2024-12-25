@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import User from '../models/user';
 import Order from '../models/order';
@@ -55,22 +55,6 @@ const schemaAndTestDataCreation = async () => {
         subcategorySchema = defineSchema('Subcategory', Subcategory, 'subcategories')
         itemSchema = defineSchema('Item', Item, 'items')
 
-        userSchema.beforeCreate(async (user: any) => {
-            if (user.password) {
-                const salt = await bcrypt.genSalt(10);  // Generate salt
-                user.password = await bcrypt.hash(user.password, salt);  // Hash the password
-            }
-        });
-
-        const usersWithHashedPasswords = userData.map((user: any) => {
-            if (user.password) {
-                const salt = bcrypt.genSaltSync(10);  // Synchronously generate salt
-                user.password = bcrypt.hashSync(user.password, salt);  // Synchronously hash the password
-            }
-            return user;
-        });
-
-
         // Relationships
         // Users ↔ Orders
         userSchema.hasMany(orderSchema, { foreignKey: 'user_id' });
@@ -95,7 +79,7 @@ const schemaAndTestDataCreation = async () => {
 
         if (process.env.PLATFORM === 'test') {
             // Test user creation
-            await userSchema.bulkCreate(usersWithHashedPasswords);
+            await userSchema.bulkCreate(userData);
             console.log('Test Users created successfully');
 
             // Test category creation
